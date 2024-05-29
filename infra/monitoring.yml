@@ -1,0 +1,8 @@
+---
+- hosts: monitoring
+  remote_user: awaz
+  gather_facts: false
+  roles:
+    - common
+    - docker
+    - monitor
