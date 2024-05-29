@@ -1,0 +1,14 @@
+---
+- name: troubleshooting (apt)
+  apt:
+    pkg:
+     - 'htop' 
+     - 'iotop'
+     - 'iftop'
+     - 'net-tools'
+     - 'traceroute'
+     - 'dnsutils'
+     - 'nmap'
+     - 'tcpdump'
+    state: present
+  become: true

@@ -1,0 +1,9 @@
+---
+- name: aptitude
+  import_tasks: tasks/aptitude.yml
+- name: install base
+  import_tasks: tasks/install-base.yml
+- name: troubleshoot
+  import_tasks: tasks/troubleshoot.yml
+- name: tuning
+  import_tasks: tasks/tuning.yml

@@ -1,0 +1,36 @@
+---
+- name: Tune memory settings
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+  with_items:
+    - { name: 'vm.swappiness', value: '10' }         # default 60
+    - { name: 'vm.vfs_cache_pressure', value: '50' } # default 100
+  become: true
+# tcp/ip tweaking
+- name: Tune network settings
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+  with_items:
+    - { name: 'net.ipv6.conf.all.disable_ipv6', value: '1' }
+    - { name: 'net.ipv4.ip_local_port_range', value: '15000 65535' }
+    - { name: 'net.ipv4.tcp_fin_timeout', value: '15' }
+    - { name: 'net.core.somaxconn', value: '1024' }
+  become: true
+- name: Tune OOM killer settings
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+  with_items:
+    # make sure the computer doesn't panic on out of memory
+    - { name: 'vm.panic_on_oom', value: '0' }
+    # change oom_killer behavior to kill the task that caused the out of memory  
+    - { name: 'vm.oom_kill_allocating_task', value: '1' }
+  become: true

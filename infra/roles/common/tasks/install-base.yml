@@ -1,0 +1,24 @@
+---
+- name: Base packages to ensure apt/ppa/curl installs
+  apt:
+    pkg:
+      - 'apt-transport-https'
+      - 'ca-certificates'
+      - 'gnupg2'
+      - 'software-properties-common'
+    state: present
+    update_cache: yes
+  become: true
+- name: Install some basic tools (apt)
+  apt:
+    pkg:
+      - 'tar'
+      - 'unzip'
+      - 'zip'
+      - 'rsync'
+      - 'curl'
+      - 'tmux'
+      - 'less'
+      - 'jq'
+    state: present
+  become: true
