@@ -3,6 +3,3 @@
 .classpath
 .vscode/
 .idea/
-
-# Unwanted config files
-**.pub
