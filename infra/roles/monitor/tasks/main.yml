@@ -1,0 +1,33 @@
+---
+- name: Create a working directory
+  ansible.builtin.file:
+    path:  "/opt/{{ role_name }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+  become: true
+
+- name: Copy Monitoring config files
+  ansible.builtin.copy:
+   src: "../files/{{ item }}"
+   dest: "/opt/{{ role_name }}/"
+   owner: "{{ ansible_user }}"
+   group: "{{ ansible_user }}"
+  loop:
+    - alertmanager
+    - caddy
+    - grafana
+    - prometheus
+
+- name: Copy metrics-docker-compose File
+  ansible.builtin.copy:
+   src: ../files/metrics-docker-compose.yml
+   dest: "/opt/{{ role_name }}/metrics-docker-compose.yml"
+
+- name: Create and start Prometheus and Grafana
+  community.docker.docker_compose_v2:
+    project_src: /opt/{{ role_name }}
+    files:
+    - metrics-docker-compose.yml
+  become: true

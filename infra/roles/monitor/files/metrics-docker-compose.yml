@@ -1,0 +1,123 @@
+networks:
+  caddy:
+    name: caddy
+    driver: bridge
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+    caddy_data: {}
+    caddy_config: {}
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.17.1
+    container_name: prometheus
+    volumes:
+      - prometheus_data:/prometheus
+      - /opt/monitor/prometheus:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    expose:
+      - 9090
+    networks:
+      - caddy
+    labels:
+      app: monitoring
+
+  alertmanager:
+    image: prom/alertmanager:v0.20.0
+    container_name: alertmanager
+    volumes:
+      - /opt/monitor/alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    restart: unless-stopped
+    expose:
+      - 9093
+    networks:
+      - caddy
+    labels:
+      app: monitoring
+
+  nodeexporter:
+    image: prom/node-exporter:v0.18.1
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    expose:
+      - 9100
+    networks:
+      - caddy
+    labels:
+      app: monitoring
+
+  grafana:
+    image: grafana/grafana:6.7.2
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - /opt/monitor/grafana/provisioning:/etc/grafana/provisioning
+      - /opt/monitor/grafana/dashboards:/var/lib/grafana/dashboards
+    environment: # TODO: security consideration, this is for demo only
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    expose:
+      - 3000
+    networks:
+      - caddy
+    labels:
+      app: monitoring
+
+  pushgateway:
+    image: prom/pushgateway:v1.2.0
+    container_name: pushgateway
+    restart: unless-stopped
+    expose:
+      - 9091
+    networks:
+      - caddy
+    labels:
+      app: monitoring
+
+  caddy:
+    image: caddy:2.8
+    container_name: caddy
+    # network_mode: "host"
+    ports:
+      - 80:80      
+      - 443:443
+      - 3000:3000
+      - 9090:9090
+      - 9093:9093
+      - 9091:9091
+    networks:
+      - caddy
+    volumes:
+      - /opt/monitor/caddy:/etc/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+    environment: # not used, but recommended, for a secure caddy
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=YWRtaW4=
+    restart: unless-stopped
+    labels:
+      app: monitoring

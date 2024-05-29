@@ -1,0 +1,18 @@
+{
+  debug
+}
+
+:9090 {
+    reverse_proxy prometheus:9091
+}
+:9091 {
+    reverse_proxy pushgateway:9091
+}
+:9093 {
+    reverse_proxy alertmanager:9091
+}
+
+grafana.awaz.xyz {
+    tls grafana@awaz.xyz
+    reverse_proxy grafana:3000
+}
