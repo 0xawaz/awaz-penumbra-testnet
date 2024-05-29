@@ -1,0 +1,8 @@
+---
+- hosts: fullnode-0
+  remote_user: awaz
+  gather_facts: false
+  roles:
+    - common
+    - docker
+    - penumbra
