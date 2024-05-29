@@ -39,6 +39,8 @@ clone git@github.com:0xawaz/awaz-penumbra-testnet.git
 cd awaz-penumbra-testnet/infra
 ```
 
+First create and add ssh public keys for your users in ```roles/users/files``` directory, then apply:
+
 - dryrun:
 
 ```sh
