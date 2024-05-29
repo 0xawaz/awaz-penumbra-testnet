@@ -1,0 +1,35 @@
+---
+- name: Create groups
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ users }}"
+  become: true
+
+- name: Create user accounts and add users to groups
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: "{{ item }}"
+    create_home: true
+    shell: /bin/bash
+    state: present
+  with_items: "{{ users }}"
+  become: true
+
+- name: Allow groups to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "^%{{ item }}"
+    line: "%{{ item }} ALL=(ALL) NOPASSWD: ALL"
+    validate: visudo -cf %s
+  with_items: "{{ users }}"
+  become: true
+
+- name: Add authorized keys
+  ansible.builtin.authorized_key:
+    user: "{{ item }}"
+    key: "{{ lookup('file', 'files/'+ item + '.pub') }}"
+    state: present
+  with_items: "{{ users }}"
+  become: true
