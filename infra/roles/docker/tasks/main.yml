@@ -1,0 +1,82 @@
+---
+- name: Add Docker GPG apt Key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: true
+
+- name: Add repository into sources list
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+    state: present
+    filename: docker
+  become: true
+
+- name: Install required python pkg for docker
+  apt:
+    pkg:
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+    state: latest
+    update_cache: true
+  become: true
+
+- name: Install Docker
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    update_cache: true
+  become: true
+
+- name: Make sure we have a 'docker' group
+  ansible.builtin.group:
+    name: docker
+    state: present
+  become: true
+
+- name: Allow 'docker' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%docker'
+    line: '%docker ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+  become: true
+
+- name: Setup docker user
+  ansible.builtin.user:
+    name: docker
+    groups: "docker"
+    append: true
+  become: true
+
+- name: Install Docker-Compose & Set Permission
+  ansible.builtin.get_url:
+    url: https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64
+    dest: /usr/local/lib/docker/cli-plugins/docker-compose
+    mode: '755'
+  become: true
+
+- name: Install Docker module for Python
+  ansible.builtin.pip:
+    name: 
+     - docker
+    executable: pip3
+  become: true
+
+- name: Create Docker-Compose symlink
+  ansible.builtin.command:
+    cmd: ln -s /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
+    creates: /usr/bin/docker-compose
+  become: true
+
+- name: Restart Docker
+  ansible.builtin.service:
+    name: docker
+    state: restarted
+    enabled: true
+  become: true
