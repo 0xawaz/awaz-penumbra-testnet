@@ -1,5 +1,8 @@
-*DS_Store
-.vs/
+# IDE
+.project
+.classpath
 .vscode/
 .idea/
-*.pub
+
+# Unwanted config files
+**.pub
